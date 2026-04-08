@@ -1,6 +1,6 @@
 # oh-my-codex skill doc upstream bundle
 
-This repository packages the local documentation-only skill changes prepared for upstream submission.
+This private bundle preserves cleaned `oh-my-codex` skill docs together with upstream-ready patch artifacts for later reference, review, or submission.
 
 ## Contents
 
