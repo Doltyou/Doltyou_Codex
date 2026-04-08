@@ -5,10 +5,10 @@ This repository packages the local documentation-only skill changes prepared for
 ## Contents
 
 - `skills/*/SKILL.md`: current cleaned source copies from the local `oh-my-codex` package
-- `exports/upstream-source-skill-sweep.patch`: upstream-friendly relative-path patch
-- `exports/upstream-source-skill-sweep-manifest.json`: per-file change manifest
-- `exports/UPSTREAM_PR_SUMMARY.md`: PR/body draft
-- `exports/UPSTREAM_LORE_COMMIT_MESSAGE.txt`: Lore-format commit message draft
+- `exports/patch.diff`: upstream-friendly relative-path patch
+- `exports/manifest.json`: per-file change manifest
+- `exports/pr-summary.md`: PR/body draft
+- `exports/commit-message.txt`: Lore-format commit message draft
 
 ## Provenance
 
