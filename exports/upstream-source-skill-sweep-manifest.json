@@ -1,0 +1,170 @@
+[
+  {
+    "relative_path": "skills/ask-claude/SKILL.md",
+    "added": 1,
+    "removed": 1,
+    "old_backup": "D:\\Project\\.omx\\backups\\installed-skill-source-sync-2026-04-08\\ask-claude\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\ask-claude\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/ask-gemini/SKILL.md",
+    "added": 1,
+    "removed": 1,
+    "old_backup": "D:\\Project\\.omx\\backups\\installed-skill-source-sync-2026-04-08\\ask-gemini\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\ask-gemini\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/autopilot/SKILL.md",
+    "added": 11,
+    "removed": 9,
+    "old_backup": "D:\\Project\\.omx\\backups\\installed-skill-source-sync-2026-04-08\\autopilot\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\autopilot\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/cancel/SKILL.md",
+    "added": 8,
+    "removed": 8,
+    "old_backup": "D:\\Project\\.omx\\backups\\installed-skill-source-sync-2026-04-08\\cancel\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\cancel\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/help/SKILL.md",
+    "added": 6,
+    "removed": 6,
+    "old_backup": "D:\\Project\\.omx\\backups\\installed-skill-source-sync-2026-04-08\\help\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\help\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/note/SKILL.md",
+    "added": 11,
+    "removed": 11,
+    "old_backup": "D:\\Project\\.omx\\backups\\installed-skill-source-sync-2026-04-08\\note\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\note\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/security-review/SKILL.md",
+    "added": 7,
+    "removed": 6,
+    "old_backup": "D:\\Project\\.omx\\backups\\installed-skill-source-sync-2026-04-08\\security-review\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\security-review\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/skill/SKILL.md",
+    "added": 53,
+    "removed": 50,
+    "old_backup": "D:\\Project\\.omx\\backups\\installed-skill-source-sync-2026-04-08\\skill\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\skill\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/build-fix/SKILL.md",
+    "added": 3,
+    "removed": 3,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-2026-04-08\\build-fix\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\build-fix\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/code-review/SKILL.md",
+    "added": 30,
+    "removed": 207,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-2026-04-08\\code-review\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\code-review\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/plan/SKILL.md",
+    "added": 20,
+    "removed": 18,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-2026-04-08\\plan\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\plan\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/ralph/SKILL.md",
+    "added": 10,
+    "removed": 8,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-2026-04-08\\ralph\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\ralph\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/ralph-init/SKILL.md",
+    "added": 3,
+    "removed": 3,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-2026-04-08\\ralph-init\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\ralph-init\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/review/SKILL.md",
+    "added": 5,
+    "removed": 5,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-2026-04-08\\review\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\review\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/swarm/SKILL.md",
+    "added": 5,
+    "removed": 5,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-2026-04-08\\swarm\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\swarm\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/ultraqa/SKILL.md",
+    "added": 6,
+    "removed": 6,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-2026-04-08\\ultraqa\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\ultraqa\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/configure-notifications/SKILL.md",
+    "added": 4,
+    "removed": 3,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-finalize-2026-04-08\\configure-notifications\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\configure-notifications\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/deep-interview/SKILL.md",
+    "added": 2,
+    "removed": 1,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-finalize-2026-04-08\\deep-interview\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\deep-interview\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/web-clone/SKILL.md",
+    "added": 3,
+    "removed": 2,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-finalize-2026-04-08\\web-clone\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\web-clone\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/ralplan/SKILL.md",
+    "added": 3,
+    "removed": 2,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-finalize-2026-04-08\\ralplan\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\ralplan\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/frontend-ui-ux/SKILL.md",
+    "added": 4,
+    "removed": 4,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-finalize-2026-04-08\\frontend-ui-ux\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\frontend-ui-ux\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/git-master/SKILL.md",
+    "added": 1,
+    "removed": 1,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-finalize-2026-04-08\\git-master\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\git-master\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/analyze/SKILL.md",
+    "added": 1,
+    "removed": 1,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-finalize-2026-04-08\\analyze\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\analyze\\SKILL.md"
+  },
+  {
+    "relative_path": "skills/tdd/SKILL.md",
+    "added": 3,
+    "removed": 3,
+    "old_backup": "D:\\Project\\.omx\\backups\\source-skill-sweep-finalize-2026-04-08\\tdd\\SKILL.md",
+    "new_source": "C:\\Users\\doltyou\\AppData\\Roaming\\npm\\node_modules\\oh-my-codex\\skills\\tdd\\SKILL.md"
+  }
+]

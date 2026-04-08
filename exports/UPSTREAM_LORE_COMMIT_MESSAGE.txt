@@ -1,0 +1,18 @@
+Improve skill docs so current OMX invocation guidance survives setup refreshes
+
+The installed skill copies had already been cleaned, but the packaged source
+skill docs still contained legacy slash-style invocations and stale runtime
+references. This syncs the active source catalog to the current `$skill-name`
+guidance and removes the highest-confusion stale tool wording so future
+`omx setup` refreshes reinstall the corrected docs instead of reintroducing drift.
+
+Constraint: Keep changes doc-only within skills/*/SKILL.md
+Constraint: Preserve current skill names, triggers, and installer paths
+Rejected: Leave fixes only in ~/.codex/skills | future setup refresh would reintroduce drift
+Rejected: Broad prose rewrite of every skill doc | too much scope for a portability cleanup pass
+Confidence: high
+Scope-risk: moderate
+Reversibility: clean
+Directive: When skill invocation conventions change, update packaged source docs and installed copies together to avoid refresh drift
+Tested: Source catalog searches for legacy invocation and stale tool references; omx setup --scope user; installed/source hash comparison for synchronized active skills
+Not-tested: Upstream repo CI outside the local installed package environment

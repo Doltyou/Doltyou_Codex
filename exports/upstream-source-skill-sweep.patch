@@ -1,0 +1,1372 @@
+diff --git a/skills/ask-claude/SKILL.md b/skills/ask-claude/SKILL.md
+index a352d084..c5089da6 100644
+--- a/skills/ask-claude/SKILL.md
++++ b/skills/ask-claude/SKILL.md
+@@ -10,7 +10,7 @@ Use the locally installed Claude CLI as a direct external advisor for focused qu
+ ## Usage
+ 
+ ```bash
+-/ask-claude <question or task>
++$ask-claude <question or task>
+ ```
+ 
+ ## Routing
+diff --git a/skills/ask-gemini/SKILL.md b/skills/ask-gemini/SKILL.md
+index 8e78239b..a4bda4fc 100644
+--- a/skills/ask-gemini/SKILL.md
++++ b/skills/ask-gemini/SKILL.md
+@@ -10,7 +10,7 @@ Use the locally installed Gemini CLI as a direct external advisor for brainstorm
+ ## Usage
+ 
+ ```bash
+-/ask-gemini <question or task>
++$ask-gemini <question or task>
+ ```
+ 
+ ## Routing
+diff --git a/skills/autopilot/SKILL.md b/skills/autopilot/SKILL.md
+index f1100ffd..f8f07d75 100644
+--- a/skills/autopilot/SKILL.md
++++ b/skills/autopilot/SKILL.md
+@@ -18,7 +18,7 @@ Autopilot takes a brief product idea and autonomously handles the full lifecycle
+ - User wants to explore options or brainstorm -- use `plan` skill instead
+ - User says "just explain", "draft only", or "what would you suggest" -- respond conversationally
+ - User wants a single focused code change -- use `ralph` or delegate to an executor agent
+-- User wants to review or critique an existing plan -- use `plan --review`
++- User wants to review or critique an existing plan -- use `$plan --review`
+ - Task is a quick fix or small bug -- use direct executor delegation
+ </Do_Not_Use_When>
+ 
+@@ -31,7 +31,7 @@ Most non-trivial software tasks require coordinated phases: understanding requir
+ - Parallel execution is used within phases where possible (Phase 2 and Phase 4)
+ - QA cycles repeat up to 5 times; if the same error persists 3 times, stop and report the fundamental issue
+ - Validation requires approval from all reviewers; rejected items get fixed and re-validated
+-- Cancel with `/cancel` at any time; progress is preserved for resume
++- Cancel with `$cancel` at any time; progress is preserved for resume
+ - If a deep-interview spec exists, use it as high-clarity phase input instead of re-expanding from scratch
+ - If input is too vague for reliable expansion, offer/trigger `$deep-interview` first
+ - Do not enter expansion/planning/execution-heavy phases until pre-context grounding exists; if fast execution is forced, proceed only with explicit risk notes
+@@ -89,16 +89,16 @@ Most non-trivial software tasks require coordinated phases: understanding requir
+    - `state_clear({mode: "ralph"})`
+    - `state_clear({mode: "ultrawork"})`
+    - `state_clear({mode: "ultraqa"})`
+-   - Or run `/cancel` for clean exit
++   - Or run `$cancel` for clean exit
+ </Steps>
+ 
+ <Tool_Usage>
+-- Before first MCP tool use, call `ToolSearch("mcp")` to discover deferred MCP tools
+-- Use `ask_codex` with `agent_role: "architect"` for Phase 4 architecture validation
+-- Use `ask_codex` with `agent_role: "security-reviewer"` for Phase 4 security review
+-- Use `ask_codex` with `agent_role: "code-reviewer"` for Phase 4 quality review
++- Use available MCP tools directly when present; do not block on a separate discovery step if the runtime already exposes the needed tools
++- Use a native subagent with role `architect` for Phase 4 architecture validation when an independent review pass adds value
++- Use a native subagent with role `security-reviewer` for Phase 4 security review when an independent review pass adds value
++- Use a native subagent with role `code-reviewer` for Phase 4 quality review when an independent review pass adds value
+ - Agents form their own analysis first, then consult Codex for cross-validation
+-- If ToolSearch finds no MCP tools or Codex is unavailable, proceed without it -- never block on external tools
++- If relevant MCP tools are unavailable, continue with native subagents or direct execution -- never block on a separate discovery step
+ </Tool_Usage>
+ 
+ ## State Management
+@@ -182,7 +182,7 @@ skipValidation = false
+ 
+ ## Resume
+ 
+-If autopilot was cancelled or failed, run `/autopilot` again to resume from where it stopped.
++If autopilot was cancelled or failed, run `$autopilot` again to resume from where it stopped.
+ 
+ ## Recommended Clarity Pipeline
+ 
+@@ -232,3 +232,5 @@ incomplete stage. See `src/pipeline/orchestrator.ts` for the full API.
+ 
+ **Validation keeps failing?** Review the specific issues. Requirements may have been too vague -- cancel and provide more detail.
+ </Advanced>
++
++
+diff --git a/skills/cancel/SKILL.md b/skills/cancel/SKILL.md
+index 995f13b9..c69e32c4 100644
+--- a/skills/cancel/SKILL.md
++++ b/skills/cancel/SKILL.md
+@@ -29,14 +29,14 @@ Automatically detects which mode is active and cancels it:
+ ## Usage
+ 
+ ```
+-/cancel
++$cancel
+ ```
+ 
+ Or say: "cancelomc", "stopomc"
+ 
+ ## Auto-Detection
+ 
+-`/cancel` follows the session-aware state contract:
++`$cancel` follows the session-aware state contract:
+ - By default the command inspects the current session via `state_list_active` and `state_get_status`, navigating `.omx/state/sessions/{sessionId}/…` to discover which mode is active.
+ - When a session id is provided or already known, that session-scoped path is authoritative. Legacy files in `.omx/state/*.json` are consulted only as a compatibility fallback if the session id is missing or empty.
+ - Swarm is a shared SQLite/marker mode (`.omx/state/swarm.db` / `.omx/state/swarm-active.marker`) and is not session-scoped.
+@@ -80,11 +80,11 @@ When cancellation targets Ralph state in a scope, completion requires all of the
+ Use `--force` or `--all` when you need to erase every session plus legacy artifacts, e.g., to reset the workspace entirely.
+ 
+ ```
+-/cancel --force
++$cancel --force
+ ```
+ 
+ ```
+-/cancel --all
++$cancel --all
+ ```
+ 
+ Steps under the hood:
+@@ -141,7 +141,7 @@ fi
+ The skill now relies on the session-aware state contract rather than hard-coded file paths:
+ 1. Call `state_list_active` to enumerate `.omx/state/sessions/{sessionId}/…` and discover every active session.
+ 2. For each session id, call `state_get_status` to learn which mode is running (`autopilot`, `ralph`, `ultrawork`, etc.) and whether dependent modes exist.
+-3. If a `session_id` was supplied to `/cancel`, skip legacy fallback entirely and operate solely within that session path; otherwise, consult legacy files in `.omx/state/*.json` only if the state tools report no active session. Swarm remains a shared SQLite/marker mode outside session scoping.
++3. If a `session_id` was supplied to `$cancel`, skip legacy fallback entirely and operate solely within that session path; otherwise, consult legacy files in `.omx/state/*.json` only if the state tools report no active session. Swarm remains a shared SQLite/marker mode outside session scoping.
+ 4. Any cancellation logic in this doc mirrors the dependency order discovered via state tools (autopilot → ralph → …).
+ 
+ ### 3A. Force Mode (if --force or --all)
+@@ -248,7 +248,7 @@ if [[ -f .omx/state/autopilot-state.json ]]; then
+   echo "$CURRENT_STATE" | jq '.active = false' > .omx/state/autopilot-state.json
+ 
+   echo "Autopilot cancelled at phase: $CURRENT_PHASE. Progress preserved for resume."
+-  echo "Run /autopilot to resume."
++  echo "Run $autopilot to resume."
+ fi
+ ```
+ 
+@@ -294,7 +294,7 @@ if [[ -f .omx/state/ultrawork-state.json ]]; then
+   LINKED=$(echo "$UW_STATE" | jq -r '.linked_to_ralph // false')
+ 
+   if [[ "$LINKED" == "true" ]]; then
+-    echo "Ultrawork is linked to Ralph. Use /cancel to cancel both."
++    echo "Ultrawork is linked to Ralph. Use $cancel to cancel both."
+     exit 1
+   fi
+ 
+@@ -363,7 +363,7 @@ Mode-specific subsections below describe what extra cleanup each handler perform
+ 
+ | Mode | State Preserved | Resume Command |
+ |------|-----------------|----------------|
+-| Autopilot | Yes (phase, files, spec, plan, verdicts) | `/autopilot` |
++| Autopilot | Yes (phase, files, spec, plan, verdicts) | `$autopilot` |
+ | Ralph | No | N/A |
+ | Ultrawork | No | N/A |
+ | UltraQA | No | N/A |
+diff --git a/skills/help/SKILL.md b/skills/help/SKILL.md
+index dfd0c635..d921776d 100644
+--- a/skills/help/SKILL.md
++++ b/skills/help/SKILL.md
+@@ -44,7 +44,7 @@ I'll figure out what to stop based on context.
+ If you haven't configured OMX yet:
+ 
+ ```
+-/omx-setup
++$omx-setup
+ ```
+ 
+ This is the **only command** you need to know. It downloads the configuration and you're done.
+@@ -59,7 +59,7 @@ That command is intentionally narrower than full setup: it only bootstraps `AGEN
+ 
+ ## For 2.x Users
+ 
+-Your old commands still work! `/ralph`, `/ultrawork`, `/plan`, etc. all function exactly as before.
++Your old commands still work! `$ralph`, `$ultrawork`, `$plan`, etc. all function exactly as before.
+ 
+ But now you don't NEED them - everything is automatic.
+ 
+@@ -136,13 +136,13 @@ Based on patterns found, output recommendations:
+ - "Consider using ecomode for routine tasks to save tokens"
+ 
+ **If no team usage:**
+-- "Try /team for coordinated review workflows"
++- "Try $team for coordinated review workflows"
+ 
+ **If no security-reviewer usage:**
+ - "Use security-reviewer after auth/API changes"
+ 
+ **If defaultExecutionMode not set:**
+-- "Set defaultExecutionMode in /omx-setup for consistent behavior"
++- "Set defaultExecutionMode in $omx-setup for consistent behavior"
+ 
+ ### Step 4: Output Report
+ 
+@@ -172,7 +172,7 @@ UNDERUTILIZED FEATURES:
+ 
+ RECOMMENDATIONS:
+ 1. Set defaultExecutionMode: "ecomode" to save tokens
+-2. Try /team for PR review workflows
++2. Try $team for PR review workflows
+ 3. Use explore agent before architect to save context
+ ```
+ 
+@@ -187,7 +187,7 @@ No token tracking found. To enable tracking:
+ 1. Ensure ~/.omx/state/ directory exists
+ 2. Run any OMX command to start tracking
+ 
+-Tip: Run /omx-setup to configure OMX properly.
++Tip: Run $omx-setup to configure OMX properly.
+ ```
+ 
+ ## Need More Help?
+diff --git a/skills/note/SKILL.md b/skills/note/SKILL.md
+index 45e2cdeb..820b9d0d 100644
+--- a/skills/note/SKILL.md
++++ b/skills/note/SKILL.md
+@@ -11,12 +11,12 @@ Save important context to `.omx/notepad.md` that survives conversation compactio
+ 
+ | Command | Action |
+ |---------|--------|
+-| `/note <content>` | Add to Working Memory with timestamp |
+-| `/note --priority <content>` | Add to Priority Context (always loaded) |
+-| `/note --manual <content>` | Add to MANUAL section (never pruned) |
+-| `/note --show` | Display current notepad contents |
+-| `/note --prune` | Remove entries older than 7 days |
+-| `/note --clear` | Clear Working Memory (keep Priority + MANUAL) |
++| `$note <content>` | Add to Working Memory with timestamp |
++| `$note --priority <content>` | Add to Priority Context (always loaded) |
++| `$note --manual <content>` | Add to MANUAL section (never pruned) |
++| `$note --show` | Display current notepad contents |
++| `$note --prune` | Remove entries older than 7 days |
++| `$note --clear` | Clear Working Memory (keep Priority + MANUAL) |
+ 
+ ## Sections
+ 
+@@ -38,11 +38,11 @@ Save important context to `.omx/notepad.md` that survives conversation compactio
+ ## Examples
+ 
+ ```
+-/note Found auth bug in UserContext - missing useEffect dependency
+-/note --priority Project uses TypeScript strict mode, all files in src/
+-/note --manual Contact: api-team@company.com for backend questions
+-/note --show
+-/note --prune
++$note Found auth bug in UserContext - missing useEffect dependency
++$note --priority Project uses TypeScript strict mode, all files in src/
++$note --manual Contact: api-team@company.com for backend questions
++$note --show
++$note --prune
+ ```
+ 
+ ## Behavior
+diff --git a/skills/security-review/SKILL.md b/skills/security-review/SKILL.md
+index c1687fa3..2ada8bac 100644
+--- a/skills/security-review/SKILL.md
++++ b/skills/security-review/SKILL.md
+@@ -117,9 +117,9 @@ The security-reviewer agent SHOULD consult Codex for cross-validation.
+ - Code with existing security tests
+ 
+ ### Tool Usage
+-Before first MCP tool use, call `ToolSearch("mcp")` to discover deferred MCP tools.
+-Use `mcp__x__ask_codex` with `agent_role: "security-reviewer"`.
+-If ToolSearch finds no MCP tools, fall back to the `security-reviewer` agent.
++Use available MCP tools directly when present; do not block on a separate discovery step if the runtime already exposes the needed tools.
++Use a native subagent with role `security-reviewer` for the independent security pass.
++If relevant MCP tools are unavailable, continue with the `security-reviewer` subagent and direct code inspection.
+ 
+ **Note:** Security second opinions are high-value. Consider consulting for CRITICAL/HIGH findings.
+ 
+@@ -274,19 +274,19 @@ The security-reviewer agent verifies:
+ 
+ **With Team:**
+ ```
+-/team "run security review on authentication module"
++$team "run security review on authentication module"
+ ```
+ Uses: explore → security-reviewer → executor → security-reviewer (re-verify)
+ 
+ **With Swarm:**
+ ```
+-/swarm 4:security-reviewer "audit all API endpoints"
++$swarm 4:security-reviewer "audit all API endpoints"
+ ```
+ Parallel security review across multiple endpoints.
+ 
+ **With Ralph:**
+ ```
+-/ralph security-review then fix all issues
++$ralph security-review then fix all issues
+ ```
+ Review, fix, re-review until all issues resolved.
+ 
+@@ -298,3 +298,4 @@ Review, fix, re-review until all issues resolved.
+ - **Fix immediately** - Don't accumulate security debt
+ - **Educate** - Learn from findings to prevent future issues
+ - **Verify fixes** - Re-run security review after remediation
++
+diff --git a/skills/skill/SKILL.md b/skills/skill/SKILL.md
+index 9c5730d0..50cd00fa 100644
+--- a/skills/skill/SKILL.md
++++ b/skills/skill/SKILL.md
+@@ -10,7 +10,7 @@ Meta-skill for managing oh-my-codex skills via CLI-like commands.
+ 
+ ## Subcommands
+ 
+-### /skill list
++### $skill list
+ 
+ Show all local skills organized by scope.
+ 
+@@ -37,7 +37,7 @@ PROJECT SKILLS (.codex/skills/):
+ 
+ ---
+ 
+-### /skill add [name]
++### $skill add [name]
+ 
+ Interactive wizard for creating a new skill.
+ 
+@@ -84,7 +84,7 @@ argument-hint: "<args>"
+ ## Examples
+ 
+ ```
+-/oh-my-codex:<name> example-arg
++$<name> example-arg
+ ```
+ 
+ ## Notes
+@@ -93,11 +93,11 @@ argument-hint: "<args>"
+ ```
+ 
+ 7. **Report success** with file path
+-8. **Suggest:** "Edit `/skill edit <name>` to customize content"
++8. **Suggest:** "Edit `$skill edit <name>` to customize content"
+ 
+ **Example:**
+ ```
+-User: /skill add custom-logger
++User: $skill add custom-logger
+ Assistant: Creating new skill 'custom-logger'...
+ 
+ Description: Enhanced logging with structured output
+@@ -106,12 +106,12 @@ Argument hint (optional): <level> [message]
+ Scope (user/project): user
+ 
+ ✓ Created skill at ~/.codex/skills/custom-logger/SKILL.md
+-→ Edit with: /skill edit custom-logger
++→ Edit with: $skill edit custom-logger
+ ```
+ 
+ ---
+ 
+-### /skill remove <name>
++### $skill remove <name>
+ 
+ Remove a skill by name.
+ 
+@@ -132,7 +132,7 @@ Remove a skill by name.
+ 
+ **Example:**
+ ```
+-User: /skill remove old-logger
++User: $skill remove old-logger
+ Assistant: Found skill 'old-logger' in user scope:
+   Description: Legacy logging utility
+   Scope: user (~/.codex/skills/)
+@@ -145,7 +145,7 @@ Assistant: ✓ Removed skill 'old-logger' from user scope
+ 
+ ---
+ 
+-### /skill edit <name>
++### $skill edit <name>
+ 
+ Edit an existing skill interactively.
+ 
+@@ -176,7 +176,7 @@ Edit an existing skill interactively.
+ 
+ **Example:**
+ ```
+-User: /skill edit custom-logger
++User: $skill edit custom-logger
+ Assistant: Current skill 'custom-logger':
+   - Description: Enhanced logging with structured output
+   - Triggers: log, logger, logging
+@@ -193,7 +193,7 @@ New triggers (comma-separated): log, logger, logging, trace
+ 
+ ---
+ 
+-### /skill search <query>
++### $skill search <query>
+ 
+ Search skills by content, triggers, name, or description.
+ 
+@@ -226,7 +226,7 @@ Found 3 skills matching "typescript error":
+ 
+ **Example:**
+ ```
+-User: /skill search api endpoint
++User: $skill search api endpoint
+ Assistant: Found 2 skills matching "api endpoint":
+ 
+ 1. api-builder (user)
+@@ -240,7 +240,7 @@ Assistant: Found 2 skills matching "api endpoint":
+ 
+ ---
+ 
+-### /skill info <name>
++### $skill info <name>
+ 
+ Show detailed information about a skill.
+ 
+@@ -263,11 +263,11 @@ File Path: /home/user/.codex/skills/custom-logger/SKILL.md
+ [entire markdown content]
+ ```
+ 
+-**If not found:** Report error with suggestion to use `/skill search`
++**If not found:** Report error with suggestion to use `$skill search`
+ 
+ **Example:**
+ ```
+-User: /skill info custom-logger
++User: $skill info custom-logger
+ Assistant: Skill: custom-logger
+ Scope: user
+ Description: Enhanced logging with structured output
+@@ -284,7 +284,7 @@ Enhanced logging with structured JSON output...
+ 
+ ---
+ 
+-### /skill sync
++### $skill sync
+ 
+ Sync skills between user and project scopes.
+ 
+@@ -334,7 +334,7 @@ Options:
+ 
+ **Example:**
+ ```
+-User: /skill sync
++User: $skill sync
+ Assistant: Found 5 user-only skills and 2 project-only skills.
+ 
+ Copy 'error-handler' from user to project? (yes/no/skip)
+@@ -348,7 +348,7 @@ User: skip
+ 
+ ---
+ 
+-### /skill setup
++### $skill setup
+ 
+ Interactive wizard for setting up and managing local skills (formerly local-skills-setup).
+ 
+@@ -439,13 +439,13 @@ echo "Total skills across all directories: $TOTAL"
+ 
+ #### Step 3: Quick Actions Menu
+ 
+-After scanning, use the AskUserQuestion tool to offer these options:
++After scanning, use `request_user_input` when available, otherwise a concise plain-text question, to offer these options:
+ 
+ **Question:** "What would you like to do with your local skills?"
+ 
+ **Options:**
+-1. **Add new skill** - Start the skill creation wizard (invoke `/skill add`)
+-2. **List all skills with details** - Show comprehensive skill inventory (invoke `/skill list`)
++1. **Add new skill** - Start the skill creation wizard (invoke `$skill add`)
++2. **List all skills with details** - Show comprehensive skill inventory (invoke `$skill list`)
+ 3. **Scan conversation for patterns** - Analyze current conversation for skill-worthy patterns
+ 4. **Import skill** - Import a skill from URL or paste content
+ 5. **Done** - Exit the wizard
+@@ -458,7 +458,7 @@ Analyze the current conversation context to identify potential skill-worthy patt
+ - Codebase-specific workarounds discovered
+ - Error patterns that took time to resolve
+ 
+-Report findings and ask if user wants to extract any as skills (invoke `/learner` if yes).
++Report findings and ask if the user wants to extract any as skills (invoke `$skill add` or `$skill edit` for the accepted patterns).
+ 
+ **Option 4: Import Skill**
+ 
+@@ -474,18 +474,18 @@ Validate the skill format and save to the chosen location.
+ 
+ ---
+ 
+-### /skill scan
++### $skill scan
+ 
+-Quick command to scan both skill directories (subset of `/skill setup`).
++Quick command to scan both skill directories (subset of `$skill setup`).
+ 
+ **Behavior:**
+-Run the scan from Step 2 of `/skill setup` without the interactive wizard.
++Run the scan from Step 2 of `$skill setup` without the interactive wizard.
+ 
+ ---
+ 
+ ## Skill Templates
+ 
+-When creating skills via `/skill add` or `/skill setup`, offer quick templates for common skill types:
++When creating skills via `$skill add` or `$skill setup`, offer quick templates for common skill types:
+ 
+ ### Error Solution Template
+ 
+@@ -668,31 +668,31 @@ How to work with this integration correctly:
+ 
+ ```bash
+ # List all skills
+-/skill list
++$skill list
+ 
+ # Create a new skill
+-/skill add my-custom-skill
++$skill add my-custom-skill
+ 
+ # Remove a skill
+-/skill remove old-skill
++$skill remove old-skill
+ 
+ # Edit existing skill
+-/skill edit error-handler
++$skill edit error-handler
+ 
+ # Search for skills
+-/skill search typescript error
++$skill search typescript error
+ 
+ # Get detailed info
+-/skill info my-custom-skill
++$skill info my-custom-skill
+ 
+ # Sync between scopes
+-/skill sync
++$skill sync
+ 
+ # Run setup wizard
+-/skill setup
++$skill setup
+ 
+ # Quick scan
+-/skill scan
++$skill scan
+ ```
+ 
+ ## Usage Modes
+@@ -701,9 +701,9 @@ How to work with this integration correctly:
+ 
+ When invoked with an argument, skip the interactive wizard:
+ 
+-- `/skill list` - Show detailed skill inventory
+-- `/skill add` - Start skill creation (invoke learner)
+-- `/skill scan` - Scan both skill directories
++- `$skill list` - Show detailed skill inventory
++- `$skill add` - Start skill creation for a newly captured pattern
++- `$skill scan` - Scan both skill directories
+ 
+ ### Interactive Mode
+ 
+@@ -749,15 +749,15 @@ Good skills are:
+ 
+ ## Related Skills
+ 
+-- `/learner` - Extract a skill from current conversation
+-- `/note` - Save quick notes (less formal than skills)
++- `$skill add` / `$skill edit` - Capture a new skill from current conversation patterns
++- `$note` - Save quick notes (less formal than skills)
+ 
+ ---
+ 
+ ## Example Session
+ 
+ ```
+-> /skill list
++> $skill list
+ 
+ Checking skill directories...
+ ✓ User skills directory exists: ~/.codex/skills/
+@@ -800,8 +800,8 @@ What would you like to do?
+ 
+ ## Tips for Users
+ 
+-- Run `/skill list` periodically to review your skill library
+-- After solving a tricky bug, immediately run learner to capture it
++- Run `$skill list` periodically to review your skill library
++- After solving a tricky bug, immediately capture it with `$skill add` or refine an existing skill with `$skill edit`
+ - Use project-level skills for codebase-specific knowledge
+ - Use user-level skills for general patterns that apply everywhere
+ - Review and refine triggers over time to improve matching accuracy
+@@ -821,15 +821,18 @@ What would you like to do?
+ 
+ ## Related Skills
+ 
+-- `/learner` - Extract a skill from current conversation
+-- `/note` - Save quick notes (less formal than skills)
++- `$skill add` / `$skill edit` - Capture a new skill from current conversation patterns
++- `$note` - Save quick notes (less formal than skills)
+ 
+ ---
+ 
+ ## Future Enhancements
+ 
+-- `/skill export <name>` - Export skill as shareable file
+-- `/skill import <file>` - Import skill from file
+-- `/skill stats` - Show usage statistics across all skills
+-- `/skill validate` - Check all skills for format errors
+-- `/skill template <type>` - Create from predefined templates
++- `$skill export <name>` - Export skill as shareable file
++- `$skill import <file>` - Import skill from file
++- `$skill stats` - Show usage statistics across all skills
++- `$skill validate` - Check all skills for format errors
++- `$skill template <type>` - Create from predefined templates
++
++
++
+diff --git a/skills/build-fix/SKILL.md b/skills/build-fix/SKILL.md
+index 59f4cd73..2591f0c3 100644
+--- a/skills/build-fix/SKILL.md
++++ b/skills/build-fix/SKILL.md
+@@ -128,18 +128,18 @@ Combine with other skills for comprehensive fixing:
+ 
+ **With Ultrawork:**
+ ```
+-/ultrawork fix all build errors
++$ultrawork fix all build errors
+ ```
+ Spawns multiple build-fixer agents in parallel for different files.
+ 
+ **With Ralph:**
+ ```
+-/ralph fix the build
++$ralph fix the build
+ ```
+ Keeps trying until build passes, even if it takes multiple iterations.
+ 
+ **With Team:**
+ ```
+-/team "debug build failures and fix type errors"
++$team "debug build failures and fix type errors"
+ ```
+ Uses: explore → build-fixer → verifier workflow.
+diff --git a/skills/code-review/SKILL.md b/skills/code-review/SKILL.md
+index acfe95af..7de424c9 100644
+--- a/skills/code-review/SKILL.md
++++ b/skills/code-review/SKILL.md
+@@ -1,224 +1,47 @@
+ ---
+ name: code-review
+-description: Run a comprehensive code review
++description: Use for structured review of code changes before merge, handoff, or approval. Focus on correctness, requirement fit, maintainability, safety, and missing verification.
+ ---
+ 
+-# Code Review Skill
++# Code Review
+ 
+-Conduct a thorough code review for quality, security, and maintainability with severity-rated feedback.
++Run a review that is useful to the author, not just descriptive.
+ 
+-## When to Use
++## Use this skill when
+ 
+-This skill activates when:
+-- User requests "review this code", "code review"
+-- Before merging a pull request
+-- After implementing a major feature
+-- User wants quality assessment
++- reviewing a patch, PR, or changed files
++- checking whether work matches requirements
++- looking for correctness, maintainability, or safety risks
++- validating whether verification is sufficient
+ 
+-## What It Does
++## Workflow
+ 
+-## GPT-5.4 Guidance Alignment
++1. Understand the intended change.
++2. Review behavior and requirement fit first.
++3. Review defect risk, edge cases, and safety concerns.
++4. Review maintainability and unnecessary complexity.
++5. Review verification adequacy.
++6. Summarize findings by severity and actionability.
+ 
+-- Default to concise, evidence-dense progress and completion reporting unless the user or risk level requires more detail.
+-- Treat newer user task updates as local overrides for the active workflow branch while preserving earlier non-conflicting constraints.
+-- If correctness depends on additional inspection, retrieval, execution, or verification, keep using the relevant tools until the review is grounded.
+-- Continue through clear, low-risk, reversible next steps automatically; ask only when the next step is materially branching, destructive, or preference-dependent.
++## Review priorities
+ 
+-Delegates to the `code-reviewer` agent (THOROUGH tier) for deep analysis:
++1. incorrect behavior
++2. missing requirement coverage
++3. unsafe assumptions or security issues
++4. fragile or overcomplicated design
++5. missing or weak verification
+ 
+-1. **Identify Changes**
+-   - Run `git diff` to find changed files
+-   - Determine scope of review (specific files or entire PR)
++## Reporting contract
+ 
+-2. **Review Categories**
+-   - **Security** - Hardcoded secrets, injection risks, XSS, CSRF
+-   - **Code Quality** - Function size, complexity, nesting depth
+-   - **Performance** - Algorithm efficiency, N+1 queries, caching
+-   - **Best Practices** - Naming, documentation, error handling
+-   - **Maintainability** - Duplication, coupling, testability
++For each issue include:
+ 
+-3. **Severity Rating**
+-   - **CRITICAL** - Security vulnerability (must fix before merge)
+-   - **HIGH** - Bug or major code smell (should fix before merge)
+-   - **MEDIUM** - Minor issue (fix when possible)
+-   - **LOW** - Style/suggestion (consider fixing)
++- severity
++- what is wrong
++- why it matters
++- what change would resolve it
+ 
+-4. **Specific Recommendations**
+-   - File:line locations for each issue
+-   - Concrete fix suggestions
+-   - Code examples where applicable
++If no issues are found, still report what was checked and any remaining unverified risk.
+ 
+-## Agent Delegation
++## References
+ 
+-```
+-delegate(
+-  role="code-reviewer",
+-  tier="THOROUGH",
+-  prompt="CODE REVIEW TASK
+-
+-Review code changes for quality, security, and maintainability.
+-
+-Scope: [git diff or specific files]
+-
+-Review Checklist:
+-- Security vulnerabilities (OWASP Top 10)
+-- Code quality (complexity, duplication)
+-- Performance issues (N+1, inefficient algorithms)
+-- Best practices (naming, documentation, error handling)
+-- Maintainability (coupling, testability)
+-
+-Output: Code review report with:
+-- Files reviewed count
+-- Issues by severity (CRITICAL, HIGH, MEDIUM, LOW)
+-- Specific file:line locations
+-- Fix recommendations
+-- Approval recommendation (APPROVE / REQUEST CHANGES / COMMENT)"
+-)
+-```
+-
+-## External Model Consultation (Preferred)
+-
+-The code-reviewer agent SHOULD consult Codex for cross-validation.
+-
+-### Protocol
+-1. **Form your OWN review FIRST** - Complete the review independently
+-2. **Consult for validation** - Cross-check findings with Codex
+-3. **Critically evaluate** - Never blindly adopt external findings
+-4. **Graceful fallback** - Never block if tools unavailable
+-
+-### When to Consult
+-- Security-sensitive code changes
+-- Complex architectural patterns
+-- Unfamiliar codebases or languages
+-- High-stakes production code
+-
+-### When to Skip
+-- Simple refactoring
+-- Well-understood patterns
+-- Time-critical reviews
+-- Small, isolated changes
+-
+-### Tool Usage
+-Before first MCP tool use, call `ToolSearch("mcp")` to discover deferred MCP tools.
+-Use `mcp__x__ask_codex` with `agent_role: "code-reviewer"`.
+-If ToolSearch finds no MCP tools, fall back to the `code-reviewer` agent.
+-
+-**Note:** Codex calls can take up to 1 hour. Consider the review timeline before consulting.
+-
+-## Output Format
+-
+-```
+-CODE REVIEW REPORT
+-==================
+-
+-Files Reviewed: 8
+-Total Issues: 15
+-
+-CRITICAL (0)
+------------
+-(none)
+-
+-HIGH (3)
+---------
+-1. src/api/auth.ts:42
+-   Issue: User input not sanitized before SQL query
+-   Risk: SQL injection vulnerability
+-   Fix: Use parameterized queries or ORM
+-
+-2. src/components/UserProfile.tsx:89
+-   Issue: Password displayed in plain text in logs
+-   Risk: Credential exposure
+-   Fix: Remove password from log statements
+-
+-3. src/utils/validation.ts:15
+-   Issue: Email regex allows invalid formats
+-   Risk: Accepts malformed emails
+-   Fix: Use proven email validation library
+-
+-MEDIUM (7)
+-----------
+-...
+-
+-LOW (5)
+--------
+-...
+-
+-RECOMMENDATION: REQUEST CHANGES
+-
+-Critical security issues must be addressed before merge.
+-```
+-
+-## Review Checklist
+-
+-The code-reviewer agent checks:
+-
+-### Security
+-- [ ] No hardcoded secrets (API keys, passwords, tokens)
+-- [ ] All user inputs sanitized
+-- [ ] SQL/NoSQL injection prevention
+-- [ ] XSS prevention (escaped outputs)
+-- [ ] CSRF protection on state-changing operations
+-- [ ] Authentication/authorization properly enforced
+-
+-### Code Quality
+-- [ ] Functions < 50 lines (guideline)
+-- [ ] Cyclomatic complexity < 10
+-- [ ] No deeply nested code (> 4 levels)
+-- [ ] No duplicate logic (DRY principle)
+-- [ ] Clear, descriptive naming
+-
+-### Performance
+-- [ ] No N+1 query patterns
+-- [ ] Appropriate caching where applicable
+-- [ ] Efficient algorithms (avoid O(n²) when O(n) possible)
+-- [ ] No unnecessary re-renders (React/Vue)
+-
+-### Best Practices
+-- [ ] Error handling present and appropriate
+-- [ ] Logging at appropriate levels
+-- [ ] Documentation for public APIs
+-- [ ] Tests for critical paths
+-- [ ] No commented-out code
+-
+-## Approval Criteria
+-
+-**APPROVE** - No CRITICAL or HIGH issues, minor improvements only
+-**REQUEST CHANGES** - CRITICAL or HIGH issues present
+-**COMMENT** - Only LOW/MEDIUM issues, no blocking concerns
+-
+-
+-## Scenario Examples
+-
+-**Good:** The user says `continue` after the workflow already has a clear next step. Continue the current branch of work instead of restarting or re-asking the same question.
+-
+-**Good:** The user changes only the output shape or downstream delivery step (for example `make a PR`). Preserve earlier non-conflicting workflow constraints and apply the update locally.
+-
+-**Bad:** The user says `continue`, and the workflow restarts discovery or stops before the missing verification/evidence is gathered.
+-
+-## Use with Other Skills
+-
+-**With Team:**
+-```
+-/team "review recent auth changes and report findings"
+-```
+-Includes coordinated review execution across specialized agents.
+-
+-**With Ralph:**
+-```
+-/ralph code-review then fix all issues
+-```
+-Review code, get feedback, fix until approved.
+-
+-**With Ultrawork:**
+-```
+-/ultrawork review all files in src/
+-```
+-Parallel code review across multiple files.
+-
+-## Best Practices
+-
+-- **Review early** - Catch issues before they compound
+-- **Review often** - Small, frequent reviews better than huge ones
+-- **Address CRITICAL/HIGH first** - Fix security and bugs immediately
+-- **Consider context** - Some "issues" may be intentional trade-offs
+-- **Learn from reviews** - Use feedback to improve coding practices
++- For review dimensions and severity guidance, read `references/review-rubric.md`.
+diff --git a/skills/plan/SKILL.md b/skills/plan/SKILL.md
+index 363897a8..c7106dcf 100644
+--- a/skills/plan/SKILL.md
++++ b/skills/plan/SKILL.md
+@@ -56,7 +56,7 @@ Jumping into code without understanding requirements leads to rework, scope cree
+ ### Interview Mode (broad/vague requests)
+ 
+ 1. **Classify the request**: Broad (vague verbs, no specific files, touches 3+ areas) triggers interview mode
+-2. **Ask one focused question** using `AskUserQuestion` for preferences, scope, and constraints
++2. **Ask one focused question** using `request_user_input` when available, otherwise one concise plain-text question, for preferences, scope, and constraints
+ 3. **Gather codebase facts first**: Before asking "what patterns does your code use?", spawn an `explore` agent to find out, then ask informed follow-up questions
+ 4. **Build on answers**: Each question builds on the previous answer
+ 5. **Consult Analyst** (THOROUGH tier) for hidden requirements, edge cases, and risks
+@@ -78,20 +78,20 @@ Jumping into code without understanding requirements leads to rework, scope cree
+    - **Viable Options** (>=2) with bounded pros/cons for each option
+    - If only one viable option remains, an explicit **invalidation rationale** for the alternatives that were rejected
+    - In **deliberate mode**: a **pre-mortem** (3 failure scenarios) and an **expanded test plan** covering **unit / integration / e2e / observability**
+-2. **User feedback** *(--interactive only)*: If running with `--interactive`, **MUST** use `AskUserQuestion` to present the draft plan **plus the RALPLAN-DR Principles / Decision Drivers / Options summary for early direction alignment** with these options:
++2. **User feedback** *(--interactive only)*: If running with `--interactive`, **MUST** use `request_user_input` when available, otherwise a concise plain-text question, to present the draft plan **plus the RALPLAN-DR Principles / Decision Drivers / Options summary for early direction alignment** with these options:
+    - **Proceed to review** — send to Architect and Critic for evaluation
+    - **Request changes** — return to step 1 with user feedback incorporated
+    - **Skip review** — go directly to final approval (step 7)
+    If NOT running with `--interactive`, automatically proceed to review (step 3).
+-3. **Architect** reviews for architectural soundness using `ask_codex` with `agent_role: "architect"`. Architect review **MUST** include: strongest steelman counterargument (antithesis) against the favored option, at least one meaningful tradeoff tension, and (when possible) a synthesis path. In deliberate mode, Architect should explicitly flag principle violations. **Wait for this step to complete before proceeding to step 4.** Do NOT run steps 3 and 4 in parallel.
+-4. **Critic** evaluates against quality criteria using `ask_codex` with `agent_role: "critic"`. Critic **MUST** verify principle-option consistency, fair alternative exploration, risk mitigation clarity, testable acceptance criteria, and concrete verification steps. Critic **MUST** explicitly reject shallow alternatives, driver contradictions, vague risks, or weak verification. In deliberate mode, Critic **MUST** reject missing/weak pre-mortem or missing/weak expanded test plan. Run only after step 3 is complete.
++3. **Architect** reviews for architectural soundness using a native subagent with role `architect`. Architect review **MUST** include: strongest steelman counterargument (antithesis) against the favored option, at least one meaningful tradeoff tension, and (when possible) a synthesis path. In deliberate mode, Architect should explicitly flag principle violations. **Wait for this step to complete before proceeding to step 4.** Do NOT run steps 3 and 4 in parallel.
++4. **Critic** evaluates against quality criteria using a native subagent with role `critic`. Critic **MUST** verify principle-option consistency, fair alternative exploration, risk mitigation clarity, testable acceptance criteria, and concrete verification steps. Critic **MUST** explicitly reject shallow alternatives, driver contradictions, vague risks, or weak verification. In deliberate mode, Critic **MUST** reject missing/weak pre-mortem or missing/weak expanded test plan. Run only after step 3 is complete.
+ 5. **Re-review loop** (max 5 iterations): If Critic rejects or iterates, execute this closed loop:
+    a. Collect all feedback from Architect + Critic
+    b. Pass feedback to Planner to produce a revised plan
+    c. **Return to Step 3** — Architect reviews the revised plan
+    d. **Return to Step 4** — Critic evaluates the revised plan
+    e. Repeat until Critic approves OR max 5 iterations reached
+-   f. If max iterations reached without approval, present the best version to user via `AskUserQuestion` with note that expert consensus was not reached
++   f. If max iterations reached without approval, present the best version to the user via `request_user_input` when available, otherwise a concise plain-text question with note that expert consensus was not reached
+ 6. **Apply improvements**: When reviewers approve with improvement suggestions, merge all accepted improvements into the plan file before proceeding. Final consensus output **MUST** include an **ADR** section with: **Decision**, **Drivers**, **Alternatives considered**, **Why chosen**, **Consequences**, **Follow-ups**. Specifically:
+    a. Collect all improvement suggestions from Architect and Critic responses
+    b. Deduplicate and categorize the suggestions
+@@ -99,13 +99,13 @@ Jumping into code without understanding requirements leads to rework, scope cree
+    d. Note which improvements were applied in a brief changelog section at the end of the plan
+    e. Before any execution handoff, derive an explicit **available-agent-types roster** from the known prompt catalog and add concrete **follow-up staffing guidance** for both `$ralph` and `$team` (recommended roles, counts, suggested reasoning levels by lane, and why each lane exists)
+    f. For the `$team` path, add an explicit launch-hint block with concrete `omx team` / `$team` commands and a **team verification path** (what team proves before shutdown, what Ralph verifies after handoff)
+-7. On Critic approval (with improvements applied): *(--interactive only)* If running with `--interactive`, use `AskUserQuestion` to present the plan with these options:
++7. On Critic approval (with improvements applied): *(--interactive only)* If running with `--interactive`, use `request_user_input` when available, otherwise a concise plain-text question, to present the plan with these options:
+    - **Approve and execute** — proceed to implementation via ralph+ultrawork
+    - **Approve and implement via team** — proceed to implementation via coordinated parallel team agents
+    - **Request changes** — return to step 1 with user feedback
+    - **Reject** — discard the plan entirely
+    If NOT running with `--interactive`, output the final approved plan and stop. Do NOT auto-execute.
+-8. *(--interactive only)* User chooses via the structured `AskUserQuestion` UI (never ask for approval in plain text)
++8. *(--interactive only)* User chooses via the `request_user_input` UI when available, otherwise plain-text choice collection (never ask for approval in plain text)
+ 9. On user approval (--interactive only):
+    - **Approve and execute**: **MUST** invoke `$ralph` with the approved plan path from `.omx/plans/` as context **plus the explicit available-agent-types roster, suggested reasoning levels, concrete role allocation guidance, and direct launch hints for Ralph follow-up work**. Do NOT implement directly. Do NOT edit source code files in the planning agent. The ralph skill handles execution via ultrawork parallel agents.
+    - **Approve and implement via team**: **MUST** invoke `$team` with the approved plan path from `.omx/plans/` as context **plus the explicit available-agent-types roster, suggested reasoning levels, concrete staffing / worker-role allocation guidance, explicit `omx team` / `$team` launch hints, and the team verification path**. Do NOT implement directly. The team skill coordinates parallel agents across the staged pipeline for faster execution on large tasks.
+@@ -114,10 +114,10 @@ Jumping into code without understanding requirements leads to rework, scope cree
+ 
+ 0. Treat review as a reviewer-only pass. The context that wrote the plan, cleanup proposal, or diff MUST NOT be the context that approves it.
+ 1. Read plan file from `.omx/plans/`
+-2. Evaluate via Critic using `ask_codex` with `agent_role: "critic"`
++2. Evaluate via a native subagent with role `critic`
+ 3. For cleanup/refactor/anti-slop work, verify that the artifact includes a cleanup plan, regression tests or an explicit test gap, smell-by-smell passes, and quality gates.
+ 4. Return verdict: APPROVED, REVISE (with specific feedback), or REJECT (replanning required)
+-5. If the current context authored the artifact, hand the review to `/review`, `critic`, `quality-reviewer`, `security-reviewer`, or `verifier` as appropriate.
++5. If the current context authored the artifact, hand the review to `$code-review`, `critic`, `quality-reviewer`, `security-reviewer`, or `verifier` as appropriate.
+ 
+ ### Plan Output Format
+ 
+@@ -137,17 +137,17 @@ Plans are saved to `.omx/plans/`. Drafts go to `.omx/drafts/`.
+ </Steps>
+ 
+ <Tool_Usage>
+-- Before first MCP tool use, call `ToolSearch("mcp")` to discover deferred MCP tools
+-- Use `AskUserQuestion` for preference questions (scope, priority, timeline, risk tolerance) -- provides clickable UI
++- Use available MCP tools directly when present; do not block on a separate discovery step if the runtime already exposes the needed tools
++- Use `request_user_input` for preference questions when available; otherwise ask one concise plain-text question (scope, priority, timeline, risk tolerance) -- provides clickable UI
+ - Use plain text for questions needing specific values (port numbers, names, follow-up clarifications)
+ - Use the `explore` agent (LOW tier, bounded quick pass) to gather codebase facts before asking the user
+-- Use `ask_codex` with `agent_role: "planner"` for planning validation on large-scope plans
+-- Use `ask_codex` with `agent_role: "analyst"` for requirements analysis
+-- Use `ask_codex` with `agent_role: "critic"` for plan review in consensus and review modes
+-- If ToolSearch finds no MCP tools or Codex is unavailable, fall back to equivalent OMX prompt agents -- never block on external tools
++- Use a native subagent with role `planner` for planning validation on large-scope plans when an independent planning pass is worth the overhead
++- Use a native subagent with role `analyst` for requirements analysis when hidden constraints or acceptance criteria need a focused pass
++- Use a native subagent with role `critic` for plan review in consensus and review modes
++- If relevant MCP tools are unavailable, fall back to native role-specialized subagents or direct review -- never block on a separate discovery step
+ - **CRITICAL — Consensus mode agent calls MUST be sequential, never parallel.** Always await the Architect result before issuing the Critic call.
+ - In consensus mode, default to RALPLAN-DR short mode; enable deliberate mode on `--deliberate` or explicit high-risk signals (auth/security, migrations, destructive changes, production incidents, compliance/PII, public API breakage)
+-- In consensus mode with `--interactive`: use `AskUserQuestion` for the user feedback step (step 2) and the final approval step (step 7) -- never ask for approval in plain text. Without `--interactive`, auto-proceed through planning steps without pausing. Output the final plan without execution.
++- In consensus mode with `--interactive`: use `request_user_input` when available for the user feedback step (step 2) and the final approval step (step 7) -- never ask for approval in plain text. Without `--interactive`, auto-proceed through planning steps without pausing. Output the final plan without execution.
+ - In consensus mode with `--interactive`, on user approval **MUST** invoke `$ralph` for execution (step 9) -- never implement directly in the planning agent
+ - In consensus mode, execution follow-up handoff **MUST** include an explicit available-agent-types roster plus concrete staffing / role-allocation guidance grounded in that roster, suggested reasoning levels by lane, explicit `omx team` / `$team` launch hints, and a team verification path
+ </Tool_Usage>
+@@ -260,7 +260,7 @@ Before asking any interview question, classify it:
+ | Type | Examples | Action |
+ |------|----------|--------|
+ | Codebase Fact | "What patterns exist?", "Where is X?" | Explore first, do not ask user |
+-| User Preference | "Priority?", "Timeline?" | Ask user via AskUserQuestion |
++| User Preference | "Priority?", "Timeline?" | Ask the user via `request_user_input` when available, otherwise a concise plain-text question |
+ | Scope Decision | "Include feature Y?" | Ask user |
+ | Requirement | "Performance constraints?" | Ask user |
+ 
+@@ -275,5 +275,7 @@ Before asking any interview question, classify it:
+ 
+ ## Deprecation Notice
+ 
+-The separate `/planner`, `/ralplan`, and `/review` skills have been merged into `$plan`. All workflows (interview, direct, consensus, review) are available through `$plan`.
++The separate planner, ralplan, and review workflows have been merged into `$plan`. All workflows (interview, direct, consensus, review) are available through `$plan`.
+ </Advanced>
++
++
+diff --git a/skills/ralph/SKILL.md b/skills/ralph/SKILL.md
+index 56d2a9c5..7d48c23d 100644
+--- a/skills/ralph/SKILL.md
++++ b/skills/ralph/SKILL.md
+@@ -79,7 +79,7 @@ Complex tasks often fail silently: partial implementations get declared "done",
+    - >20 files or security/architectural changes: THOROUGH tier (architect role)
+    - Ralph floor: always at least STANDARD, even for small changes
+ 7.5 **Mandatory Deslop Pass**:
+-   - After Step 7 passes, run `oh-my-codex:ai-slop-cleaner` on **all files changed during the Ralph session**.
++   - After Step 7 passes, run `$ai-slop-cleaner` on **all files changed during the Ralph session**.
+    - Scope the cleaner to **changed files only**; do not widen the pass beyond Ralph-owned edits.
+    - Run the cleaner in **standard mode** (not `--review`).
+    - If the prompt contains `--no-deslop`, skip Step 7.5 entirely and proceed with the most recent successful verification evidence.
+@@ -87,15 +87,15 @@ Complex tasks often fail silently: partial implementations get declared "done",
+    - After the deslop pass, re-run all tests/build/lint and read the output to confirm they still pass.
+    - If post-deslop regression fails, roll back cleaner changes or fix and retry. Then rerun Step 7.5 and Step 7.6 until the regression is green.
+    - Do not proceed to completion until post-deslop regression is green (unless `--no-deslop` explicitly skipped the deslop pass).
+-8. **On approval**: Run `/cancel` to cleanly exit and clean up all state files
++8. **On approval**: Run `$cancel` to cleanly exit and clean up all state files
+ 9. **On rejection**: Fix the issues raised, then re-verify at the same tier
+ </Steps>
+ 
+ <Tool_Usage>
+-- Before first MCP tool use, call `ToolSearch("mcp")` to discover deferred MCP tools
+-- Use `ask_codex` with `agent_role: "architect"` for verification cross-checks when changes are security-sensitive, architectural, or involve complex multi-system integration
++- Use available MCP tools directly when present; do not block on a separate discovery step if the runtime already exposes the needed tools
++- Use a native subagent with role `architect` for verification cross-checks when changes are security-sensitive, architectural, or involve complex multi-system integration
+ - Skip Codex consultation for simple feature additions, well-tested changes, or time-critical verification
+-- If ToolSearch finds no MCP tools or Codex is unavailable, proceed with architect agent verification alone -- never block on external tools
++- If relevant MCP tools are unavailable, proceed with architect-agent verification alone -- never block on a separate discovery step
+ - Use `state_write` / `state_read` for ralph mode state persistence between iterations
+ - Persist context snapshot path in Ralph mode state so later phases and agents share the same grounding context
+ </Tool_Usage>
+@@ -142,7 +142,7 @@ Correct verification before completion:
+ 2. Run: npm run build      → Output: "Build succeeded"
+ 3. Run: lsp_diagnostics    → Output: 0 errors
+ 4. Delegate to architect at STANDARD tier  → Verdict: "APPROVED"
+-5. Run /cancel
++5. Run `$cancel`
+ ```
+ Why good: Fresh evidence at each step, architect verification, then clean exit.
+ </Good>
+@@ -166,7 +166,7 @@ Why bad: These are independent tasks that should run in parallel, not sequential
+ 
+ <Escalation_And_Stop_Conditions>
+ - Stop and report when a fundamental blocker requires user input (missing credentials, unclear requirements, external service down)
+-- Stop when the user says "stop", "cancel", or "abort" -- run `/cancel`
++- Stop when the user says "stop", "cancel", or "abort" -- run `$cancel`
+ - Continue working when the hook system sends "The boulder never stops" -- this means the iteration continues
+ - If architect rejects verification, fix the issues and re-verify (do not stop)
+ - If the same issue recurs across 3+ iterations, report it as a potential fundamental problem
+@@ -181,7 +181,7 @@ Why bad: These are independent tasks that should run in parallel, not sequential
+ - [ ] Architect verification passed (STANDARD tier minimum)
+ - [ ] ai-slop-cleaner pass completed on changed files (or --no-deslop specified)
+ - [ ] Post-deslop regression tests pass
+-- [ ] `/cancel` run for clean state cleanup
++- [ ] `$cancel` run for clean state cleanup
+ </Final_Checklist>
+ 
+ <Advanced>
+@@ -262,3 +262,5 @@ Workflow: Detect flag, extract task, create `.omx/plans/prd-{slug}.md`, create `
+ 
+ Original task:
+ {{PROMPT}}
++
++
+diff --git a/skills/ralph-init/SKILL.md b/skills/ralph-init/SKILL.md
+index 7f5353de..48113f92 100644
+--- a/skills/ralph-init/SKILL.md
++++ b/skills/ralph-init/SKILL.md
+@@ -10,7 +10,7 @@ Initialize a PRD (Product Requirements Document) for structured ralph-loop execu
+ ## Usage
+ 
+ ```
+-/ralph-init "project or feature description"
++$ralph-init "project or feature description"
+ ```
+ 
+ ## Behavior
+@@ -22,7 +22,7 @@ Initialize a PRD (Product Requirements Document) for structured ralph-loop execu
+    - Acceptance criteria (testable)
+    - Technical constraints
+    - Implementation phases
+-3. **Link to Ralph** so that `/ralph` can use the PRD as its completion criteria
++3. **Link to Ralph** so that `$ralph` can use the PRD as its completion criteria
+ 4. **Initialize/ensure canonical progress ledger** at `.omx/state/{scope}/ralph-progress.json` (session scope if active session exists)
+ 
+ ### Canonical source contract
+@@ -39,7 +39,7 @@ A structured PRD file saved to `.omx/plans/` that serves as the definition of do
+ 
+ After creating the PRD, start execution with:
+ ```
+-/ralph "implement the PRD"
++$ralph "implement the PRD"
+ ```
+ 
+ Ralph will iterate until all acceptance criteria in the PRD are met and architect-verified.
+diff --git a/skills/review/SKILL.md b/skills/review/SKILL.md
+index 053ac8c4..fce31409 100644
+--- a/skills/review/SKILL.md
++++ b/skills/review/SKILL.md
+@@ -1,17 +1,17 @@
+ ---
+ name: review
+-description: Reviewer-only pass for /plan --review and cleanup artifact review
++description: Reviewer-only pass for $plan --review and cleanup artifact review
+ ---
+ 
+ # Review (Reviewer-Only Pass)
+ 
+-Review is a shorthand alias for `/plan --review`. It triggers Critic evaluation of an existing plan and is intended to preserve writer/reviewer separation.
++Review is a shorthand alias for `$plan --review`. It triggers Critic evaluation of an existing plan and is intended to preserve writer$reviewer separation.
+ 
+ ## Usage
+ 
+ ```
+-/review
+-/review "path/to/plan.md"
++$review
++$review "path/to/plan.md"
+ ```
+ 
+ ## Behavior
+@@ -19,7 +19,7 @@ Review is a shorthand alias for `/plan --review`. It triggers Critic evaluation
+ This skill invokes the Plan skill in review mode:
+ 
+ ```
+-/plan --review <arguments>
++$plan --review <arguments>
+ ```
+ 
+ The review workflow:
+diff --git a/skills/swarm/SKILL.md b/skills/swarm/SKILL.md
+index 62bd8251..8eb043ba 100644
+--- a/skills/swarm/SKILL.md
++++ b/skills/swarm/SKILL.md
+@@ -5,21 +5,21 @@ description: N coordinated agents on shared task list (compatibility facade over
+ 
+ # Swarm (Compatibility Facade)
+ 
+-Swarm is a compatibility alias for the `/team` skill. All swarm invocations are routed to the Team skill's staged pipeline.
++Swarm is a compatibility alias for the `$team` skill. All swarm invocations are routed to the Team skill's staged pipeline.
+ 
+ ## Usage
+ 
+ ```
+-/swarm N:agent-type "task description"
+-/swarm "task description"
++$swarm N:agent-type "task description"
++$swarm "task description"
+ ```
+ 
+ ## Behavior
+ 
+-This skill is identical to `/team`. Invoke the Team skill with the same arguments:
++This skill is identical to `$team`. Invoke the Team skill with the same arguments:
+ 
+ ```
+-/team <arguments>
++$team <arguments>
+ ```
+ 
+ Follow the Team skill's full documentation for staged pipeline, agent routing, and coordination semantics.
+diff --git a/skills/ultraqa/SKILL.md b/skills/ultraqa/SKILL.md
+index e8ed1b97..42ae3542 100644
+--- a/skills/ultraqa/SKILL.md
++++ b/skills/ultraqa/SKILL.md
+@@ -26,11 +26,11 @@ Parse the goal from arguments. Supported formats:
+ 
+ | Invocation | Goal Type | What to Check |
+ |------------|-----------|---------------|
+-| `/ultraqa --tests` | tests | All test suites pass |
+-| `/ultraqa --build` | build | Build succeeds with exit 0 |
+-| `/ultraqa --lint` | lint | No lint errors |
+-| `/ultraqa --typecheck` | typecheck | No TypeScript errors |
+-| `/ultraqa --custom "pattern"` | custom | Custom success pattern in output |
++| `$ultraqa --tests` | tests | All test suites pass |
++| `$ultraqa --build` | build | Build succeeds with exit 0 |
++| `$ultraqa --lint` | lint | No lint errors |
++| `$ultraqa --typecheck` | typecheck | No TypeScript errors |
++| `$ultraqa --custom "pattern"` | custom | Custom success pattern in output |
+ 
+ If no structured goal provided, interpret the argument as a custom goal.
+ 
+@@ -123,7 +123,7 @@ Use `omx_state` MCP tools for UltraQA lifecycle state.
+ 
+ ## Cancellation
+ 
+-User can cancel with `/cancel` which clears the state file.
++User can cancel with `$cancel` which clears the state file.
+ 
+ ## Important Rules
+diff --git a/skills/configure-notifications/SKILL.md b/skills/configure-notifications/SKILL.md
+index e18055d9..0cc72b7f 100644
+--- a/skills/configure-notifications/SKILL.md
++++ b/skills/configure-notifications/SKILL.md
+@@ -59,7 +59,7 @@ fi
+ 
+ ## Step 2: Main Menu
+ 
+-Use AskUserQuestion:
++Use `request_user_input` when available; otherwise ask a concise plain-text question:
+ 
+ **Question:** "What would you like to configure?"
+ 
+@@ -87,7 +87,7 @@ Do not write these as generic command/webhook aliases.
+ 
+ ### 4a) `custom_webhook_command`
+ 
+-Use AskUserQuestion to collect:
++Use `request_user_input` when available; otherwise ask concise plain-text questions to collect:
+ - URL
+ - Optional headers
+ - Optional method (`POST` default, or `PUT`)
+@@ -114,7 +114,7 @@ jq \
+ 
+ ### 4b) `custom_cli_command`
+ 
+-Use AskUserQuestion to collect:
++Use `request_user_input` when available; otherwise ask concise plain-text questions to collect:
+ - Command template (supports `{{event}}`, `{{instruction}}`, `{{sessionId}}`, `{{projectPath}}`)
+ - Optional event list
+ - Optional instruction template
+@@ -284,3 +284,4 @@ Show:
+ - Whether explicit `notifications.openclaw` exists (and therefore overrides aliases)
+ - Verbosity + idle cooldown + reply listener state
+ - Config path (`~/.codex/.omx-config.json`)
++
+diff --git a/skills/deep-interview/SKILL.md b/skills/deep-interview/SKILL.md
+index 6345c0a9..0bade7d1 100644
+--- a/skills/deep-interview/SKILL.md
++++ b/skills/deep-interview/SKILL.md
+@@ -145,7 +145,7 @@ Detailed dimensions:
+ `Non-goals` and `Decision Boundaries` are mandatory readiness gates. Ask about them early and keep revisiting them until they are explicit.
+ 
+ ### 2b) Ask the question
+-Use structured user-input tooling available in the runtime (`AskUserQuestion` / equivalent) and present:
++Use structured user-input tooling available in the runtime (`request_user_input` / equivalent) and present:
+ 
+ ```
+ Round {n} | Target: {weakest_dimension} | Ambiguity: {score}%
+@@ -356,3 +356,4 @@ deep-interview -> ralplan -> autopilot
+ </Advanced>
+ 
+ Task: {{ARGUMENTS}}
++
+diff --git a/skills/web-clone/SKILL.md b/skills/web-clone/SKILL.md
+index c1a2653f..c788c98c 100644
+--- a/skills/web-clone/SKILL.md
++++ b/skills/web-clone/SKILL.md
+@@ -45,7 +45,7 @@ Excluded:
+ <Prerequisites>
+ Playwright MCP server must be available for browser automation.
+ 
+-1. Before first tool use, call `ToolSearch("browser")` or `ToolSearch("playwright")` to discover available browser tools.
++1. Check whether browser / Playwright-style tools are available in the current runtime before starting extraction.
+ 2. If no browser tools are found, instruct the user:
+    ```
+    Playwright MCP is required. Configure it:
+@@ -61,7 +61,7 @@ Playwright MCP server must be available for browser automation.
+ </Inputs>
+ 
+ <Tool_Usage>
+-- Before first MCP tool use, call `ToolSearch("browser")` or `ToolSearch("playwright")` to discover deferred Playwright MCP tools.
++- Use browser / Playwright-style tools directly when they are available in the current runtime.
+ - If no browser tools are found, stop immediately and instruct the user to configure Playwright MCP.
+ - Use `browser_snapshot` (accessibility tree) for structural understanding — it is far more token-efficient than screenshots.
+ - Use `browser_take_screenshot` only when visual verification is needed (Pass 1 baseline, Pass 4 comparison).
+@@ -364,3 +364,4 @@ Rules:
+ - [ ] When in ralph: visual verdict persisted to `ralph-progress.json`
+ - [ ] Extraction summary persisted to `web-clone-extraction.json`
+ </Final_Checklist>
++
+diff --git a/skills/ralplan/SKILL.md b/skills/ralplan/SKILL.md
+index 0a09630d..3b1309c9 100644
+--- a/skills/ralplan/SKILL.md
++++ b/skills/ralplan/SKILL.md
+@@ -48,7 +48,7 @@ The consensus workflow:
+    - Viable Options (>=2) with bounded pros/cons
+    - If only one viable option remains, explicit invalidation rationale for alternatives
+    - Deliberate mode only: pre-mortem (3 scenarios) + expanded test plan (unit/integration/e2e/observability)
+-2. **User feedback** *(--interactive only)*: If `--interactive` is set, use `AskUserQuestion` to present the draft plan **plus the Principles / Drivers / Options summary** before review (Proceed to review / Request changes / Skip review). Otherwise, automatically proceed to review.
++2. **User feedback** *(--interactive only)*: If `--interactive` is set, use `request_user_input` when available, otherwise a concise plain-text question, to present the draft plan **plus the Principles / Drivers / Options summary** before review (Proceed to review / Request changes / Skip review). Otherwise, automatically proceed to review.
+ 3. **Architect** reviews for architectural soundness and must provide the strongest steelman antithesis, at least one real tradeoff tension, and (when possible) synthesis — **await completion before step 4**. In deliberate mode, Architect should explicitly flag principle violations.
+ 4. **Critic** evaluates against quality criteria — run only after step 3 completes. Critic must enforce principle-option consistency, fair alternatives, risk mitigation clarity, testable acceptance criteria, and concrete verification steps. In deliberate mode, Critic must reject missing/weak pre-mortem or expanded test plan.
+ 5. **Re-review loop** (max 5 iterations): Any non-`APPROVE` Critic verdict (`ITERATE` or `REJECT`) MUST run the same full closed loop:
+@@ -58,7 +58,7 @@ The consensus workflow:
+    d. Return to Critic evaluation
+    e. Repeat this loop until Critic returns `APPROVE` or 5 iterations are reached
+    f. If 5 iterations are reached without `APPROVE`, present the best version to the user
+-6. On Critic approval *(--interactive only)*: If `--interactive` is set, use `AskUserQuestion` to present the plan with approval options (Approve and execute via ralph / Approve and implement via team / Request changes / Reject). Final plan must include ADR (Decision, Drivers, Alternatives considered, Why chosen, Consequences, Follow-ups), an explicit available-agent-types roster, concrete follow-up staffing guidance for both `ralph` and `team`, suggested reasoning levels by lane, explicit `omx team` / `$team` launch hints, and a concrete **team verification** path. Otherwise, output the final plan and stop.
++6. On Critic approval *(--interactive only)*: If `--interactive` is set, use `request_user_input` when available, otherwise a concise plain-text question, to present the plan with approval options (Approve and execute via ralph / Approve and implement via team / Request changes / Reject). Final plan must include ADR (Decision, Drivers, Alternatives considered, Why chosen, Consequences, Follow-ups), an explicit available-agent-types roster, concrete follow-up staffing guidance for both `ralph` and `team`, suggested reasoning levels by lane, explicit `omx team` / `$team` launch hints, and a concrete **team verification** path. Otherwise, output the final plan and stop.
+ 7. *(--interactive only)* User chooses: Approve (ralph or team), Request changes, or Reject
+ 8. *(--interactive only)* On approval: invoke `$ralph` for sequential execution or `$team` for parallel team execution with the explicit available-agent-types roster, reasoning-by-lane guidance, role/staffing allocation guidance, launch hints, and verification-path guidance from the approved plan -- never implement directly
+ 
+@@ -163,3 +163,4 @@ The gate auto-passes when it detects **any** concrete signal. You do not need al
+ **Good:** The user changes only the output shape or downstream delivery step (for example `make a PR`). Preserve earlier non-conflicting workflow constraints and apply the update locally.
+ 
+ **Bad:** The user says `continue`, and the workflow restarts discovery or stops before the missing verification/evidence is gathered.
++
+diff --git a/skills/frontend-ui-ux/SKILL.md b/skills/frontend-ui-ux/SKILL.md
+index fd82ac8d..f8c2bd38 100644
+--- a/skills/frontend-ui-ux/SKILL.md
++++ b/skills/frontend-ui-ux/SKILL.md
+@@ -10,15 +10,15 @@ Routes to the designer agent or Gemini MCP for frontend work.
+ ## Usage
+ 
+ ```
+-/frontend-ui-ux <design task>
++$frontend-ui-ux <design task>
+ ```
+ 
+ ## Routing
+ 
+ ### Preferred: MCP Direct
+-Before first MCP tool use, call `ToolSearch("mcp")` to discover deferred MCP tools.
+-Use `mcp__g__ask_gemini` with `agent_role: "designer"` for design tasks.
+-If ToolSearch finds no MCP tools, use the Codex agent fallback below.
++Use available MCP tools directly when present; do not block on a separate discovery step if the runtime already exposes the needed tools.
++Use a native subagent with role `designer` for focused UI/UX architecture or interaction-design passes when direct work is not enough.
++If relevant MCP tools are unavailable, continue with the designer subagent fallback below.
+ 
+ ### Fallback: Codex Agent
+ ```
+diff --git a/skills/git-master/SKILL.md b/skills/git-master/SKILL.md
+index 6007f482..ee8dc74e 100644
+--- a/skills/git-master/SKILL.md
++++ b/skills/git-master/SKILL.md
+@@ -10,7 +10,7 @@ Routes to the git-master agent for git operations.
+ ## Usage
+ 
+ ```
+-/git-master <git task>
++$git-master <git task>
+ ```
+ 
+ ## Routing
+diff --git a/skills/analyze/SKILL.md b/skills/analyze/SKILL.md
+index cccee87a..47f514a2 100644
+--- a/skills/analyze/SKILL.md
++++ b/skills/analyze/SKILL.md
+@@ -137,7 +137,7 @@ After the initial evidence pass, pressure-test with these lenses when relevant:
+ 4. **Route to analyzer**:
+    - For simple cases: investigate directly with file reads and reasoning
+    - For complex cases: use `$team` with tracer lanes
+-   - Use `ask_codex` with `agent_role: "architect"` when available
++   - Use a native subagent with role `architect` when an independent deep analysis pass is helpful
+ 5. **Falsify**: Try to break your own best hypothesis
+ 6. **Return structured findings**: Present with evidence, file references, and actionable recommendations
+diff --git a/skills/tdd/SKILL.md b/skills/tdd/SKILL.md
+index 12f511e8..c140191f 100644
+--- a/skills/tdd/SKILL.md
++++ b/skills/tdd/SKILL.md
+@@ -99,8 +99,8 @@ The tdd-guide agent SHOULD consult Codex for test strategy validation.
+ - Small, isolated functionality
+ 
+ ### Tool Usage
+-Before first MCP tool use, call `ToolSearch("mcp")` to discover deferred MCP tools.
+-Use `mcp__x__ask_codex` with `agent_role: "tdd-guide"`.
+-If ToolSearch finds no MCP tools, fall back to the `test-engineer` agent.
++Use available MCP tools directly when present; do not block on a separate discovery step if the runtime already exposes the needed tools.
++Use a native subagent with role `test-engineer` for an independent TDD/test-strategy pass when direct work is not enough.
++If relevant MCP tools are unavailable, continue with the `test-engineer` subagent fallback.
+ 
+ **Remember:** The discipline IS the value. Shortcuts destroy the benefit.
